@@ -1,0 +1,30 @@
+- hosts: all
+  become: true
+  tasks:
+    - name: Run "apt-get update"
+      apt:
+        update_cache: yes
+    - name: install pip
+      command: apt-get install -y python-pip
+    - name: ensure docker registry is available
+      # For Ubuntu 14.04 LTS, use this repository:
+      apt_repository:
+        repo: deb https://apt.dockerproject.org/repo ubuntu-trusty main
+        state: present
+    - name: ensure docker and dependencies are installed
+      apt: 
+        name: docker.io 
+        update_cache: yes 
+    - copy:
+        src: Dockerfile
+        dest: /Dockerfile
+    - copy:
+        src: requirements.txt
+        dest: /requirements.txt
+    - pip:
+        requirements: /requirements.txt
+    - copy:
+        src: mycodesample/
+        dest: /mycodesample/
+    - name: start django server
+      shell: nohup python /mycodesample/manage.py runserver 0.0.0.0:8000 </dev/null >/dev/null 2>&1 &
